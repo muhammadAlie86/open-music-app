@@ -1,6 +1,8 @@
 require('dotenv').config();
 
 const Hapi = require("@hapi/hapi");
+const Jwt = require('@hapi/jwt');
+
 const albums = require('./api/albums');
 const AlbumsService = require("./services/postgres/AlbumsService");
 const AlbumValidator = require("./validator/albums");
@@ -13,6 +15,13 @@ const users = require('./api/users');
 const UsersService = require('./services/postgres/UsersService');
 const UsersValidator = require('./validator/users');
 
+const playlists = require('./api/playlist');
+const PlaylistsService = require('./services/postgres/PlaylistsService');
+const PlaylistsValidator = require('./validator/playlists');
+
+const playlistSongs = require('./api/playlistsongs');
+const PlaylistSongsService = require('./services/postgres/PlaylistSongsService');
+const PlaylistSongValidator = require('./validator/playlistsongs');
 
 const authentications = require('./api/authentications');
 const AuthenticationsService = require('./services/postgres/AuthenticationsService');
@@ -25,6 +34,8 @@ const init = async () => {
     const albumsService = new AlbumsService();
     const songsService = new SongsService();
     const usersService = new UsersService();
+    const playlistsService = new PlaylistsService();
+    const playlistsSongsService = new PlaylistSongsService();
     const authenticationsService = new AuthenticationsService();
 
     const server = Hapi.server({
@@ -38,6 +49,38 @@ const init = async () => {
         },
       });
 
+      await server.register([
+
+        {
+
+          plugin : Jwt,
+        },
+
+      ]);
+
+      server.auth.strategy('musicsapp_jwt', 'jwt', {
+        
+        keys: process.env.ACCESS_TOKEN_KEY,
+        verify: {
+
+          aud: false,
+          iss: false,
+          sub: false,
+          maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+        
+        },
+        
+        validate: (artifacts) => ({
+          
+          isValid: true,
+          credentials: {
+          
+            id: artifacts.decoded.payload.id,
+          
+          },
+        }),
+      });
+     
  
       await server.register([
         
@@ -65,6 +108,24 @@ const init = async () => {
             
             service:usersService,
             validator : UsersValidator,
+
+          },
+        },
+        {
+          plugin: playlists,
+          options: {
+            
+            service:playlistsService,
+            validator : PlaylistsValidator,
+
+          },
+        },
+        {
+          plugin: playlistSongs,
+          options: {
+            
+            service:playlistsSongsService,
+            validator : PlaylistSongValidator,
 
           },
         },
