@@ -3,6 +3,7 @@ const InvariantError = require('../../exceptions/InvariantError');
 const { nanoid } = require('nanoid');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
+const playlist = require('../../api/playlist');
  
 
 
@@ -68,11 +69,11 @@ class PlaylistsService{
           
         const result = await this._pool.query(query);
 
-        if (result.rowCount === 0) {
+        if (!result.rowCount) {
             throw new NotFoundError('Playlist tidak ditemukan');
         }
 
-        return result.rows((playlist) => playlist.id, playlist.name,);
+        return result.rows((playlist) => playlist.id, playlist.name,playlist.owner);
         
     }
 
@@ -89,7 +90,7 @@ class PlaylistsService{
        
           const result = await this._pool.query(query);
        
-          if (result.rowCount === 0) {
+          if (!result.rowCount) {
             throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan');
           }
 
@@ -107,7 +108,7 @@ class PlaylistsService{
       };
       
       const result = await this._pool.query(query);
-      if (result.rowCount === 0) {
+      if (!result.rowCount) {
         
         throw new NotFoundError('Playlist tidak ditemukan');
       }
