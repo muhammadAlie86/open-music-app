@@ -71,24 +71,23 @@ class PlaylistsHandler {
         }
       }
     
-    async getPlaylistsHandler (request, h) {
+    async getPlaylistsHandler (request) {
         
       try{
             
-          const { id } = request.params;
           const { id: credentialId } = request.auth.credentials;
     
-          await this._service.verifyNoteOwner(id, credentialId);
+          //await this._service.verifyPlaylistOwner(id, credentialId);
           
-          const playlists = await this._service.getPlaylists(id);
-          const response = h.response({
+          const playlists = await this._service.getPlaylists(credentialId);
+          return{
             
             status: 'success',
             message: 'Berhasil mengambil playlist',
             data: {
               playlists,
             },
-          });
+          };
 
           response.code(200);
           return response;
@@ -129,7 +128,7 @@ class PlaylistsHandler {
             const { id } = request.params;
             const { id: credentialId } = request.auth.credentials;
             
-            await this._service.verifyNoteOwner(id, credentialId);
+            await this._service.verifyPlaylistOwner(id, credentialId);
             await this._service.deletePlaylistById(id);
             
             const response = h.response({

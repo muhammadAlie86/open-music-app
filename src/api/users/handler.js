@@ -13,8 +13,8 @@ class UserHandler {
     async postUserHandler(request, h){
 
         try{
-
             this._validator.validateUserPayload(request.payload);
+
             const { username, password, fullname } = request.payload;
 
             const userId = await this._service.addUser({ username, password, fullname});
@@ -59,7 +59,7 @@ class UserHandler {
 
         }
     }
-
+  
 
 }
 

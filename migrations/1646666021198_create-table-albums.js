@@ -71,8 +71,7 @@ exports.up = pgm => {
       albumid: {
           
         type: 'varchar(50)',
-        references: 'albums',
-        onDelete: 'cascade',
+        notNull: false,
         
       },
     });

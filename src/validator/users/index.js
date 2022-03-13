@@ -17,4 +17,4 @@ const UserValidator = {
 
 };
 
-module.exports = UserValidator;
+module.exports =  UserValidator ;
