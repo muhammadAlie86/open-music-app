@@ -1,3 +1,6 @@
+const ClientError = require('../../exceptions/ClientError');
+ 
+
 class CollaborationsHandler {
     
     constructor(collaborationsService, playlistsService, validator) {
@@ -19,7 +22,7 @@ class CollaborationsHandler {
             const { id: credentialId } = request.auth.credentials;
             const { playlistId, userId } = request.payload;
             
-            this._playlistsService.verifyNoteOwner(playlistId, credentialId);   
+            this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);   
             const collaborationId = await this._collaborationsService.addCollaboration(playlistId, userId);
     
             const response = h.response({
@@ -69,7 +72,7 @@ class CollaborationsHandler {
             const { id: credentialId } = request.auth.credentials;
             const { playlistId, userId } = request.payload;
      
-            await this._playlistsService.verifyNoteOwner(playlistId, credentialId);
+            await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
             await this._collaborationsService.deleteCollaboration(playlistId, userId);
      
           

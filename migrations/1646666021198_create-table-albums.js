@@ -68,12 +68,7 @@ exports.up = pgm => {
       
       },
         
-      albumid: {
-          
-        type: 'varchar(50)',
-        notNull: false,
-        
-      },
+      
     });
   };
     

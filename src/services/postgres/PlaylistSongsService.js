@@ -1,6 +1,8 @@
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const { nanoid } = require('nanoid');
+const NotFoundError = require('../../exceptions/NotFoundError');
+const AuthorizationError = require('../../exceptions/AuthorizationError');
  
 
 
@@ -11,13 +13,13 @@ class PlaylistSongsService{
     }
 
     
-    async addPlaylistSong({ playlistId, songId }){
+    async addPlaylistSong(playlistId, songId ){
 
         const id = `playlist_song-${nanoid(16)}`;
 
         const query = {
 
-            text : 'INSERT INTO playlistSongs VALUES ($1, $2, $3) RETURNING id',
+            text : 'INSERT INTO playlistsongs VALUES ($1, $2, $3) RETURNING id',
             values : [id, playlistId, songId],
         };
 
@@ -34,13 +36,18 @@ class PlaylistSongsService{
         
         const query = {
             text: `SELECT songs.id, songs.title, songs.performer
-            FROM songs
-            LEFT JOIN playlistsongs ON songs.id = playlistsongs.id
-            WHERE playlistsongs.id = $1`,
+            FROM playlistsongs
+            LEFT JOIN songs ON songs.song_id = playlistsongs.id
+            WHERE playlistsongs.playlist_id = $1`,
             values: [playlistId],
           };
       
           const result = await this._pool.query(query);
+          
+        if (!result.rowCount) {
+          throw new InvariantError('Lagu tidak ditemukan di dalam playlist');
+        }
+
       
           return result.rows;
       }
@@ -50,7 +57,7 @@ class PlaylistSongsService{
         
         const query = {
         
-            text: 'DELETE FROM playlistsongs WHERE id = $1 AND id = $2 RETURNING id',
+            text: 'DELETE FROM playlistsongs WHERE playlist_id = $1 AND song_id = $2 RETURNING id',
               values: [playlistId, songId],
         };
     
@@ -62,6 +69,8 @@ class PlaylistSongsService{
           );
         }
     }
+    
+  
 }
 
 module.exports = PlaylistSongsService;
