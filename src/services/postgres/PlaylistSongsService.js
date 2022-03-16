@@ -35,14 +35,17 @@ class PlaylistSongsService{
     async getPlaylistSongs(playlistId) {
         
         const query = {
-            text: 'SELECT a.id, a.title, a.performer FROM songs a JOIN playlistsongs b ON a.id = b.song_id JOIN playlists c ON c.id = b.playlist_id WHERE b.playlist_id = $1 OR c.id = $1',
-            values: [playlistId],
+            text: `SELECT songs.id, songs.title, songs.performer FROM playlistsongs
+            JOIN songs ON songs.id = playlistsongs.song_id
+            WHERE playlistsongs.playlist_id = $1
+            GROUP BY playlistsongs.song_id, songs.id`,
+             values: [playlistId],
           };
       
           const result = await this._pool.query(query);
           
         if (!result.rowCount) {
-          throw new InvariantError('Lagu tidak ditemukan di dalam playlist');
+          throw new NotFoundError ('Lagu tidak ditemukan di dalam playlist');
         }
 
       
