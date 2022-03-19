@@ -11,7 +11,6 @@
         "ecmaVersion": 12
     },
     "rules": {
-        "quotes" : [2,"single", {"avoidEscape" : true}],
         "no-console": "off",
         "linebreak-style": "off",
         "no-underscore-dangle": "off"

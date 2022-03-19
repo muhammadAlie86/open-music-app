@@ -16,7 +16,7 @@ class AuthenticationsHandler {
     }
     
     async postAuthenticationHandler(request, h) {
-        
+        try{
           
             this._validator.validatePostAuthenticationPayload(request.payload);
             const { username, password } = request.payload;
@@ -41,10 +41,36 @@ class AuthenticationsHandler {
               
               response.code(201);
               return response;
+            } 
+            catch (error) {
+              if (error instanceof ClientError) {
+                const response = h.response({
+                  
+                  status: 'fail',
+                  message: error.message,
+                
+                });
+                
+                response.code(error.statusCode);
+                return response;
+              }
+         
+              // Server ERROR!
+              const response = h.response({
+                
+                status: 'error',
+                message: 'Maaf, terjadi kegagalan pada server kami.',
+              
+              });
+              
+              response.code(500);
+              console.error(error);
+              return response;
+            }
     }
     async putAuthenticationHandler(request, h) {
         
-            
+        try{    
             this._validator.validatePutAuthenticationPayload(request.payload);
  
             const { refreshToken } = request.payload;
@@ -62,12 +88,39 @@ class AuthenticationsHandler {
                 
                 },
             };
+        } 
+        catch (error) {
+          if (error instanceof ClientError) {
+            const response = h.response({
+              
+              status: 'fail',
+              message: error.message,
+            
+            });
+            
+            response.code(error.statusCode);
+            return response;
+          }
+     
+          // Server ERROR!
+          const response = h.response({
+            
+            status: 'error',
+            message: 'Maaf, terjadi kegagalan pada server kami.',
+          
+          });
+          
+          response.code(500);
+          console.error(error);
+          return response;
+        }
      
         
     }
 
     async deleteAuthenticationHandler(request, h) {
         
+        try{
             this._validator.validateDeleteAuthenticationPayload(request.payload);
      
             const { refreshToken } = request.payload;
@@ -80,6 +133,32 @@ class AuthenticationsHandler {
             });
             response.code(200);
             return response;
+        } 
+        catch (error) {
+          if (error instanceof ClientError) {
+            const response = h.response({
+              
+              status: 'fail',
+              message: error.message,
+            
+            });
+            
+            response.code(error.statusCode);
+            return response;
+          }
+     
+          // Server ERROR!
+          const response = h.response({
+            
+            status: 'error',
+            message: 'Maaf, terjadi kegagalan pada server kami.',
+          
+          });
+          
+          response.code(500);
+          console.error(error);
+          return response;
+        }
       }
         
 }

@@ -27,7 +27,7 @@ class PlaylistsService{
         
         const result = await this._pool.query(query);
 
-        if (!result.rowCount) {
+        if (!result.rows.length) {
             throw new InvariantError('Playlist gagal ditambahkan');
           }
        
@@ -68,7 +68,7 @@ class PlaylistsService{
        
           const result = await this._pool.query(query);
        
-          if (!result.rowCount) {
+          if (!result.rows.length) {
             throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan');
           }
 
@@ -81,12 +81,13 @@ class PlaylistsService{
       
       const query = {
         
-        text: 'SELECT owner FROM playlists WHERE id = $1',
+        text: 'SELECT * FROM playlists WHERE id = $1 ',
         values: [playlistId],
       };
       
       const result = await this._pool.query(query);
-      if (!result.rowCount) {
+      
+      if (result.rows.length === 0) {
         
         throw new NotFoundError('Playlist tidak ditemukan');
       }

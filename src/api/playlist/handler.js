@@ -73,7 +73,7 @@ class PlaylistsHandler {
       }
     
     async getPlaylistsHandler (request,h) {
-        try{
+      try{
             
         const { id: credentialId } = request.auth.credentials;
         const playlists = await this._service.getPlaylists(credentialId);
@@ -87,7 +87,19 @@ class PlaylistsHandler {
       response.code(200);
       return response;
         
-      }catch (error) {
+      }
+      catch (error) {
+        if (error instanceof ClientError) {
+          const response = h.response({
+            
+            status: 'fail',
+            message: error.message,
+          
+          });
+          
+          response.code(error.statusCode);
+          return response;
+        }
         const response = h.response({
           status: 'error',
           message: 'Maaf, terjadi kegagalan pada server kami.',

@@ -3,12 +3,10 @@ const { PlaylistSongPayloadSchema } = require('./schema');
 
 const PlaylistSongValidator = {
 
-    validatePlaylistSongPayload : (payload) => {
+  validatePlaylistSongPayload: (payload) => {
+    const validationResult = PlaylistSongPayloadSchema.validate(payload);
 
-        const validationResult = PlaylistSongPayloadSchema.validate(payload);
-
-        if(validationResult.error){
-
+    if (validationResult.error) {
             throw new InvariantError (validationResult.error.message);
         }
     },
