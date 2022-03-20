@@ -8,9 +8,8 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 
 class PlaylistsService{
 
-    constructor(collaborationService){
+    constructor(){
         this._pool = new Pool();
-        this._collaborationService = collaborationService;
     }
 
     
@@ -27,7 +26,7 @@ class PlaylistsService{
         
         const result = await this._pool.query(query);
 
-        if (!result.rows.length) {
+        if (!result.rows[0].id) {
             throw new InvariantError('Playlist gagal ditambahkan');
           }
        
@@ -40,23 +39,27 @@ class PlaylistsService{
         text: `SELECT playlists.id, playlists.name, users.username
         FROM playlists
         LEFT JOIN users ON users.id = playlists.owner
-        LEFT JOIN collaborations 
-        ON collaborations.playlist_id = playlists.id
-        WHERE playlists.owner = $1 
-        OR collaborations.user_id = $1`,
+        WHERE playlists.owner = $1 `,
         values: [owner],
       
       };
-    
+
+      const result = await this._pool.query(query);
+      return result.rows;
+      
+    }
+      
+    async getPlaylistsForSong(playlistId, owner) {
+        const query = {
+          text: `SELECT playlists.*, users.username FROM playlists
+          LEFT JOIN users ON playlists.owner = users.id
+          WHERE playlists.id = $2 AND playlists.owner=$1`,
+          values: [owner, playlistId],
+        };
         const result = await this._pool.query(query);
     
-        return result.rows
-      }
-
-
-   
-   
-
+        return result.rows[0];
+    }
     async deletePlaylistById(id,credentialId){
 
         const query = {
@@ -71,9 +74,6 @@ class PlaylistsService{
           if (!result.rows.length) {
             throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan');
           }
-
-          return result.rows;
-
 
     }
 
@@ -100,27 +100,7 @@ class PlaylistsService{
 
     }
     
-    async verifyPlaylistAccess(playlistId, userId) {
-
-      try {
-        
-        await this.verifyPlaylistOwner(playlistId, userId);
-      } 
-      catch (error) {
-        
-        if (error instanceof NotFoundError) {
-          throw error;
-        }
-        try {
-          
-          await this._collaborationService.verifyCollaborator(playlistId, userId);
-        } 
-        catch {
-          
-          throw error;
-        }
-      }
-    }
+    
 }
 
 module.exports = PlaylistsService;

@@ -8,6 +8,7 @@ module.exports = {
     register : async (server, {  
         playlistsSongsService,
         playlistsService,
+        songsService,
         validator,
     
     }) => {
@@ -16,6 +17,7 @@ module.exports = {
             
             playlistsSongsService,
             playlistsService,
+            songsService,
             validator,
         
         );

@@ -1,8 +1,6 @@
 const { Pool } = require('pg');
 const InvariantError = require('../../exceptions/InvariantError');
 const { nanoid } = require('nanoid');
-const NotFoundError = require('../../exceptions/NotFoundError');
-const AuthorizationError = require('../../exceptions/AuthorizationError');
  
 
 
@@ -13,7 +11,7 @@ class PlaylistSongsService{
     }
 
     
-    async addPlaylistSong(playlistId, songId ){
+    async addPlaylistSong(playlistId, songId){
 
         const id = `playlist_song-${nanoid(16)}`;
 
@@ -23,46 +21,44 @@ class PlaylistSongsService{
             values : [id, playlistId, songId],
         };
 
+
         
         const result = await this._pool.query(query);
 
-        if (result.rows.length === 0) {
+        if (!result.rows[0].id) {
             throw new InvariantError('Playlist lagu gagal ditambahkan');
           }
        
-        return result.rows;
     }
+
     async getPlaylistSongs(playlistId) {
         
         const query = {
             text: `SELECT songs.id, songs.title, songs.performer FROM playlistsongs
-            INNER JOIN songs ON playlistsongs.song_id = songs.id
-            WHERE playlistsongs.playlist_id = $1`,
+            JOIN songs ON playlistsongs.song_id = songs.id
+            WHERE playlistsongs.playlist_id = $1 `,
              values: [playlistId],
           };
       
           const result = await this._pool.query(query);
-          
-        if (result.rows.length === 0) {
-          throw new NotFoundError ('Lagu tidak ditemukan di dalam playlist');
-        }
+         
 
       
           return result.rows;
       }
 
 
-      async deleteSongFromPlaylist(playlistId, songId) {
+    async deleteSongFromPlaylist(playlistId, songId) {
         
         const query = {
-        
+            
             text: 'DELETE FROM playlistsongs WHERE playlist_id = $1 AND song_id = $2 RETURNING id',
-              values: [playlistId, songId],
+            values: [playlistId, songId],
         };
     
         const result = await this._pool.query(query);
     
-        if (result.rows.length === 0) {
+        if (!result.rows.length) {
           throw new InvariantError(
             'Lagu gagal dihapus dari playlist. Id tidak ditemukan',
           );

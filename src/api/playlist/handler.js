@@ -19,7 +19,6 @@ class PlaylistsHandler {
         try{
             
           this._validator.validatePlaylistPayload(request.payload);
-          
           const { name } = request.payload;
           const { id: credentialId } = request.auth.credentials;
     
@@ -73,41 +72,20 @@ class PlaylistsHandler {
       }
     
     async getPlaylistsHandler (request,h) {
-      try{
-            
+      
         const { id: credentialId } = request.auth.credentials;
         const playlists = await this._service.getPlaylists(credentialId);
-         
-          const response = h.response({
-          status: 'success',
-          data: {
+        const response = h.response({
+        status: 'success',
+        data: {
+          
               playlists,
           },
-      });
-      response.code(200);
-      return response;
-        
-      }
-      catch (error) {
-        if (error instanceof ClientError) {
-          const response = h.response({
-            
-            status: 'fail',
-            message: error.message,
-          
-          });
-          
-          response.code(error.statusCode);
-          return response;
-        }
-        const response = h.response({
-          status: 'error',
-          message: 'Maaf, terjadi kegagalan pada server kami.',
         });
-        response.code(500);
-        console.error(error);
+      
+        response.code(200);
         return response;
-      }
+      
     }
 
    
@@ -120,17 +98,12 @@ class PlaylistsHandler {
             await this._service.verifyPlaylistOwner(playlistId, credentialId);
             await this._service.deletePlaylistById(playlistId, credentialId);
             
-            const response = h.response({
+            return{
               
               status: 'success',
               message: 'Playlist berhasil dihapus.',
             
-            });
-
-            response.code(200);
-            return response;
-      
-            
+            };
         } 
         catch (error) {
           if (error instanceof ClientError) {

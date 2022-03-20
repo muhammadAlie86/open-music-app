@@ -4,10 +4,11 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistSongsHandler {
 
-    constructor (playlistsSongsService, playlistsService,validator){
+    constructor (playlistsSongsService, playlistsService,songService,validator){
 
         this._playlistsSongsService = playlistsSongsService;
         this._playlistsService = playlistsService; 
+        this._songsService =  songService;
         this._validator = validator;
 
         this.postPlaylistSongHandler = this.postPlaylistSongHandler.bind(this);
@@ -20,7 +21,6 @@ class PlaylistSongsHandler {
 
       try{
         
-        const { id: credentialId } = request.auth.credentials;
         const { playlistId, any} = request.params;
 
         if (any !== 'songs') {
@@ -28,15 +28,20 @@ class PlaylistSongsHandler {
         }
         
         this._validator.validatePlaylistSongPayload(request.payload);
+        const { id: credentialId } = request.auth.credentials;
         const { songId } = request.payload;
          
-        await this._playlistsService.verifyPlaylistAccess(playlistId,credentialId);
-        await this._playlistsSongsService.addPlaylistSong(playlistId, songId);
+        await this._playlistsService.verifyPlaylistOwner(playlistId,credentialId);
+        await this._songsService.getSongById(songId);
+        const playlistSongId = await this._playlistsSongsService.addPlaylistSong(playlistId, songId);
           
         const response = h.response({
           
             status: 'success',
             message: 'Lagu berhasil ditambahkan',
+            data : {
+              playlistSongId
+            }
             
         });
         response.code(201);
@@ -72,18 +77,25 @@ class PlaylistSongsHandler {
         
         const { id: credentialId } = request.auth.credentials
         const { playlistId, any } = request.params
+
         if (any !== 'songs') {
           throw new NotFoundError('Resource not found')
         }
         
-        await this._playlistsService.verifyPlaylistAccess(playlistId,credentialId);
+        await this._playlistsService.verifyPlaylistOwner(playlistId,credentialId); 
+        const playlist = await this._playlistsService.getPlaylistsForSong(playlistId, credentialId);
         const songs = await this._playlistsSongsService.getPlaylistSongs(playlistId);
           
         return{
             
             status: 'success',
             data: {
-              songs,
+              playlist : {
+                id : playlist.id,
+                name : playlist.name,
+                username : playlist.username,
+                songs,
+              }
             },
           };
         }
@@ -112,28 +124,25 @@ class PlaylistSongsHandler {
     
    
     async deletePlaylistSongsHandler (request, h) {
-    try{
+      
+      try{
+        
         const { id: credentialId } = request.auth.credentials
         const { playlistId, any } = request.params
         if (any !== 'songs') {
           throw new NotFoundError('Resource not found')
         }
-          
-        this._validator.validatePlaylistSongPayload(request.payload)
-          const { songId } = request.payload;
-
-          await this._playlistsService.verifyPlaylistAccess(playlistId,credentialId);
-
-          await this._playlistsSongsService.deleteSongFromPlaylist(playlistId, songId);
+        const { songId } = request.payload;
+        await this._playlistsService.verifyPlaylistOwner(playlistId,credentialId);
+        await this._playlistsSongsService.deleteSongFromPlaylist(playlistId, songId);
+        return{
             
-          return{
-              
               status: 'success',
               message: 'Playlist lagu berhasil dihapus.',
-              
-            
+                    
             };
-          }catch (error) {
+        }
+        catch (error) {
             if (error instanceof ClientError) {
               const response = h.response({
                 
@@ -149,11 +158,11 @@ class PlaylistSongsHandler {
               status: 'error',
               message: 'Maaf, terjadi kegagalan pada server kami.',
             });
+            
             response.code(500);
             console.error(error);
             return response;
           }
-
         
       }
   }
